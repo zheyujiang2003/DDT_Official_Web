@@ -10,8 +10,10 @@
             height: 100%;
             margin: 0;
             font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f9;
+            background-color: #f9f9f9;
             color: #333;
+            display: flex;
+            flex-direction: column;
         }
 
         body {
@@ -20,7 +22,7 @@
         }
 
         header {
-            background-color: #4CAF50;
+            background-color: #000;
             color: white;
             padding: 1rem 0;
             text-align: center;
@@ -29,6 +31,7 @@
         header h1 {
             margin: 0;
             font-size: 2.5rem;
+            font-weight: 700;
         }
 
         nav ul {
@@ -37,7 +40,7 @@
             margin: 0;
             display: flex;
             justify-content: center;
-            background-color: #45a049;
+            background-color: #111;
             flex-wrap: wrap;
         }
 
@@ -48,20 +51,24 @@
         nav ul li a {
             color: white;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 700;
             padding: 0.5rem;
             display: block;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         nav ul li a:hover {
-            background-color: #3e8e41;
+            background-color: #333;
             border-radius: 5px;
+            color: #00aaff;
         }
 
         main {
             flex: 1;
             padding: 2rem;
             text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         main section {
@@ -69,12 +76,13 @@
         }
 
         main h2 {
-            color: #4CAF50;
+            color: #000;
             font-size: 2rem;
+            font-weight: 700;
         }
 
         footer {
-            background-color: #333;
+            background-color: #000;
             color: white;
             text-align: center;
             padding: 1rem 0;
@@ -86,6 +94,13 @@
             height: auto;
             max-width: 300px;
             margin: 1rem 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .content img:hover {
+            transform: scale(1.05);
         }
 
         .budget-form, .savings-form {
@@ -100,21 +115,32 @@
             font-size: 1rem;
             width: calc(100% - 1rem);
             max-width: 400px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        .budget-form input:focus, .savings-form input:focus {
+            border-color: #00aaff;
+            outline: none;
         }
 
         .budget-form button, .savings-form button {
             padding: 0.5rem 1rem;
             font-size: 1rem;
-            background-color: #4CAF50;
+            background-color: #000;
             color: white;
             border: none;
             cursor: pointer;
             margin-top: 1rem;
             max-width: 200px;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         .budget-form button:hover, .savings-form button:hover {
-            background-color: #45a049;
+            background-color: #00aaff;
+            transform: scale(1.05);
         }
 
         .budget-result, .savings-result {
@@ -140,7 +166,7 @@
 
         .investment-advice h3, .savings-advice h3 {
             margin-top: 1rem;
-            color: #4CAF50;
+            color: #000;
         }
 
         .investment-advice ul, .savings-advice ul {
@@ -163,9 +189,14 @@
         }
 
         .contact-info a {
-            color: #4CAF50;
+            color: #00aaff;
             text-decoration: none;
             font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .contact-info a:hover {
+            color: #333;
         }
 
         @media (max-width: 768px) {
@@ -233,6 +264,7 @@
         </section>
         <section id="investment" style="display:none;">
             <h2>投資建議</h2>
+            <p>投資一定有風險，基金投資有賺有賠，申購前應詳閱公開說明書。</p>
             <div class="investment-advice" id="investmentAdvice"></div>
         </section>
         <section id="savings" style="display:none;">
@@ -270,6 +302,15 @@
                     section.style.display = 'none';
                 }
             });
+
+            // Hide investment section if budget is not calculated
+            if (sectionId === 'investment') {
+                const budgetCalculated = document.getElementById('result').textContent !== '';
+                if (!budgetCalculated) {
+                    alert('請先完成預算管理才能查看投資建議。');
+                    showSection('budget');
+                }
+            }
         }
 
         function calculateBudget() {
@@ -283,70 +324,20 @@
 
             if (!isNaN(income) && !isNaN(expenses) && !isNaN(lastMonthIncome) && !isNaN(lastMonthExpenses)) {
                 const remainingBudget = income - expenses;
-                resultDiv.textContent = `剩餘預算：${remainingBudget} 元`;
-
-                let advice = '';
+                resultDiv.textContent = `本月剩餘預算：${remainingBudget.toFixed(2)}`;
+                
                 if (remainingBudget > 0) {
-                    advice = `<p>你的財務狀況不錯，建議你將一部分剩餘預算用於投資或儲蓄。</p>`;
-                } else if (remainingBudget === 0) {
-                    advice = `<p>你的預算剛好平衡，建議你謹慎控制支出。</p>`;
+                    adviceDiv.innerHTML = '<p>你有盈餘，可以考慮進行投資。</p>';
+                    nextStepBtn.style.display = 'block';
                 } else {
-                    advice = `<p>你的支出超過了收入，建議你減少不必要的開支，並尋找增加收入的方法。</p>`;
+                    adviceDiv.innerHTML = '<p>你本月的支出超過了收入，請控制支出。</p>';
+                    nextStepBtn.style.display = 'none';
                 }
-
-                const lastMonthSurplus = lastMonthIncome - lastMonthExpenses;
-                if (lastMonthSurplus > 0) {
-                    advice += `<p>上月你的財務狀況良好，請繼續保持良好的支出控制。</p>`;
-                } else if (lastMonthSurplus === 0) {
-                    advice += `<p>上月你的預算平衡，請繼續謹慎控制支出。</p>`;
-                } else {
-                    advice += `<p>上月你的支出超過收入，請特別注意減少不必要的開支。</p>`;
-                }
-
-                adviceDiv.innerHTML = advice;
-
-                nextStepBtn.style.display = 'block';
-
-                const investmentAdvice = generateInvestmentAdvice(remainingBudget);
-                document.getElementById('investmentAdvice').innerHTML = investmentAdvice;
             } else {
-                resultDiv.textContent = '請輸入有效的收入和支出數字';
+                resultDiv.textContent = '請輸入有效的數字。';
                 adviceDiv.innerHTML = '';
                 nextStepBtn.style.display = 'none';
             }
-        }
-
-        function generateInvestmentAdvice(remainingBudget) {
-            if (remainingBudget <= 0) {
-                return '<p>由於您的預算不足，建議您首先改善財務狀況，然後再考慮投資。</p>';
-            }
-
-            let investmentOptions = [];
-
-            if (remainingBudget > 0 && remainingBudget <= 1000) {
-                investmentOptions = [
-                    { name: '股票A', description: '低風險穩定回報' },
-                    { name: '加密貨幣B', description: '適合小額投資者' }
-                ];
-            } else if (remainingBudget > 1000 && remainingBudget <= 5000) {
-                investmentOptions = [
-                    { name: '股票C', description: '中等風險較高回報' },
-                    { name: '加密貨幣D', description: '潛力巨大但風險較高' }
-                ];
-            } else if (remainingBudget > 5000) {
-                investmentOptions = [
-                    { name: '股票E', description: '高風險高回報' },
-                    { name: '加密貨幣F', description: '適合資本充裕的投資者' }
-                ];
-            }
-
-            let adviceHTML = '<h3>投資建議</h3><ul>';
-            investmentOptions.forEach(option => {
-                adviceHTML += `<li><strong>${option.name}</strong>: ${option.description}</li>`;
-            });
-            adviceHTML += '</ul>';
-
-            return adviceHTML;
         }
 
         function calculateSavings() {
@@ -355,43 +346,20 @@
             const transport = parseFloat(document.getElementById('transport').value);
             const entertainment = parseFloat(document.getElementById('entertainment').value);
             const others = parseFloat(document.getElementById('others').value);
-
-            const totalExpenses = housing + food + transport + entertainment + others;
-            const savingsAdviceDiv = document.getElementById('savingsAdvice');
             const savingsResultDiv = document.getElementById('savingsResult');
+            const savingsAdviceDiv = document.getElementById('savingsAdvice');
 
             if (!isNaN(housing) && !isNaN(food) && !isNaN(transport) && !isNaN(entertainment) && !isNaN(others)) {
-                const advice = `<p>你每月的總支出為 ${totalExpenses} 元。建議你設定儲蓄目標，將每月收入的 20% 進行儲蓄。</p>`;
-                savingsResultDiv.textContent = `每月總支出：${totalExpenses} 元`;
-
-                let savingsSuggestions = [];
-
-                if (totalExpenses > 0 && totalExpenses <= 1000) {
-                    savingsSuggestions = [
-                        { name: '儲蓄計劃A', description: '短期儲蓄，高靈活性' },
-                        { name: '儲蓄計劃B', description: '適合小額儲蓄' }
-                    ];
-                } else if (totalExpenses > 1000 && totalExpenses <= 5000) {
-                    savingsSuggestions = [
-                        { name: '儲蓄計劃C', description: '中期儲蓄，穩定收益' },
-                        { name: '儲蓄計劃D', description: '適合中等額度儲蓄' }
-                    ];
-                } else if (totalExpenses > 5000) {
-                    savingsSuggestions = [
-                        { name: '儲蓄計劃E', description: '長期儲蓄，高收益' },
-                        { name: '儲蓄計劃F', description: '適合大額儲蓄' }
-                    ];
+                const totalExpenses = housing + food + transport + entertainment + others;
+                savingsResultDiv.textContent = `總支出：${totalExpenses.toFixed(2)}`;
+                
+                if (totalExpenses < income) {
+                    savingsAdviceDiv.innerHTML = '<p>你有足夠的收入來儲蓄，可以考慮進行定期存款或投資。</p>';
+                } else {
+                    savingsAdviceDiv.innerHTML = '<p>請控制你的支出，並考慮儲蓄計劃。</p>';
                 }
-
-                let savingsAdviceHTML = '<h3>儲蓄建議</h3><ul>';
-                savingsSuggestions.forEach(option => {
-                    savingsAdviceHTML += `<li><strong>${option.name}</strong>: ${option.description}</li>`;
-                });
-                savingsAdviceHTML += '</ul>';
-
-                savingsAdviceDiv.innerHTML = savingsAdviceHTML;
             } else {
-                savingsResultDiv.textContent = '請輸入有效的支出數字';
+                savingsResultDiv.textContent = '請輸入有效的數字。';
                 savingsAdviceDiv.innerHTML = '';
             }
         }
